@@ -1,49 +1,5 @@
-/* 
-lists:
-{
-  _id: ObjectId,
-  name: string,
-  listId: "2309oweifjslkdfw0"
-}
-
-cards: 
-{
-  _id: ObjectId,
-  list: string,
-  name: string,
-  date: string,
-  description: string,
-  comment: string,
-  checklist: id -> use this id to match with todos?
-}
-
-todos: 
-{
-  _id: ObjectId,
-  checklist: id -> matching with card.checklist.
-  task: string,
-  done: boolean,
-}
-
-{
-  lists: [
-
-    {name: string,
-      _id: 2349sdkfaf,
-      cards: [
-        {
-          list: 
-          checklist: [
-            {id: asdfa,
-
-            }
-          ]
-        }
-      ]}
-  ]
-}
-*/
 const express = require("express");
+
 const {
   getClient,
   getDB,
@@ -55,7 +11,6 @@ const app = express();
 
 
 //Middelwares
-/* app.use(express.json()); */ //Write own json middleware.
 
 app.use((req, res, next) => {
   fn.jsonParser(req, res, next);
@@ -64,56 +19,65 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   let start = Date.now();
   res.once("finish", () => {
-    console.log(`Method: ${req.method}, Path: ${req.path}, Status: ${res.statusCode} Response Time: ${Date.now()-start}`)
+    let log = `Method: ${req.method}, Path: ${req.path}, Status: ${res.statusCode} Response Time: ${Date.now()-start}`;
+    console.log(log);
   })
   next();
 })
 
-//Map response to a single datastructure? 
-//.find({key: {$in: ["value1", "value2"]}})
 app.get("/lists", (req, res) => {
-  let data = {};
   const db = getDB();
   db.collection("lists")
     .find({})
     .toArray()
-    .then(lists => {
-      data.lists = lists;
-
-      let names = fn.toArray(lists, "name");
-      return db.collection("cards").find({
-        list: {
-          $in: names
-        },
-      }).toArray()
-    })
-    .then(cardsRes => {
-      data.cards = cardsRes;
-      let checklists = fn.toArray(cardsRes, "checklist");
-      console.log(checklists);
-      return db.collection("checklists").find({
-        checklist: {
-          $in: checklists
-        }
-      }).toArray()
-    })
-    .then(checklistRes => {
-
-      for (let card of data.cards) {
-        card.checklist = checklistRes.filter(x => x.checklist === card.checklist);
-      }
-      for (let list of data.lists) {
-        list.cards = data.cards.filter(x => x.list === list.name);
-      }
-      delete data.cards;
-
-      res.json({
-        data: data,
-      });
+    .then(result => {
+      if (!result) return res.status(400).end();
+      res.status(200).json({
+        data: result
+      })
     })
     .catch(e => {
       console.error(e);
-      res.status(500).end();
+    })
+})
+
+app.get("/cards/:listId", (req, res) => {
+  let id = req.params.listId;
+
+  const db = getDB();
+  db.collection("cards")
+    .find({
+      list: createObjectId(id)
+    })
+    .toArray()
+    .then(result => {
+      if (!result) res.status(400).end();
+      res.status(200).json({
+        data: result
+      })
+    })
+    .catch(e => {
+      console.error(e);
+    })
+})
+
+app.get("/checklists/:cardId", (req, res) => {
+  let id = req.params.cardId;
+
+  const db = getDB();
+  db.collection("checklists")
+    .find({
+      card: createObjectId(id)
+    })
+    .toArray()
+    .then(result => {
+      if (!result) res.status(400).end();
+      res.status(200).json({
+        data: result
+      })
+    })
+    .catch(e => {
+      console.error(e);
     })
 })
 
@@ -137,18 +101,20 @@ app.post("/lists", (req, res) => {
 app.post("/cards", (req, res) => {
   let data = req.body;
   if (!data.list) return res.status(400).end();
+  data.list = createObjectId(data.list);
   const db = getDB();
   db.collection("lists")
     .findOne({
-      name: data.list
+      _id: createObjectId(data.list)
     })
     .then(result => {
       if (!result) return res.status(404).end();
       //this runs if validation is ok.
+      data.created = Date.now();
       return db.collection("cards").insertOne(data)
     })
     .then(result => {
-      data._id = result.insertedId;
+      data._id = result.insertedId; //string
       res.status(201).json(data);
     })
     .catch(e => {
@@ -157,18 +123,22 @@ app.post("/cards", (req, res) => {
     })
 
 })
+
 app.post("/checklists", (req, res) => {
   let data = req.body;
-  if (!data.checklist) return res.status(400).end();
+  if (!data.card || !data.list) return res.status(400).end();
+  data.list = createObjectId(data.list);
+
+  data.card = createObjectId(data.card);
+
   const db = getDB();
   console.log(data);
   db.collection("cards")
     .findOne({
-      checklist: data.checklist
+      _id: createObjectId(data.card)
     })
     .then(result => {
       if (!result) return res.status(404).end();
-
       return db.collection("checklists").insertOne(data)
     })
     .then(result => {
@@ -185,7 +155,8 @@ app.patch("/lists/:listId", (req, res) => {
   let id = req.params.listId;
   let data = req.body;
 
-  if (!id) return res.status(400).end();
+  if (!id || !data.name) return res.status(400).end();
+
   const db = getDB();
   db.collection("lists")
     .updateOne({
@@ -194,7 +165,11 @@ app.patch("/lists/:listId", (req, res) => {
       $set: data
     }, )
     .then(result => {
-      res.send(result) //checka result
+      res.status(201).json(result) //checka result
+    })
+    .catch(e => {
+      console.error(e)
+      res.status(500).end();
     })
 
 })
@@ -212,7 +187,7 @@ app.patch("/cards/:cardsId", (req, res) => {
       $set: data
     }, )
     .then(result => {
-      res.send(result) //checka result
+      res.json(result) //checka result
     })
 })
 
@@ -229,7 +204,7 @@ app.patch("/checklists/:todoId", (req, res) => {
       $set: data
     }, )
     .then(result => {
-      res.send(result) //checka result
+      res.json(result) //checka result
     })
 
 })
@@ -240,11 +215,29 @@ app.delete("/lists/:listId", (req, res) => {
   if (!id) return res.status(400).end();
   const db = getDB();
   db.collection("lists")
-    .remove({
+    .deleteOne({
       _id: createObjectId(id)
     })
     .then(result => {
+      console.log("LIST:", result);
       res.status(204).end();
+
+      return db.collection("cards").deleteMany({
+        list: createObjectId(id),
+      })
+    })
+    .then(result => {
+      console.log("CARDS:", result)
+      return db.collection("checklists").deleteMany({
+        list: createObjectId(id)
+      })
+    })
+    .then(result => {
+      console.log("CHECKLISTS:", result);
+    })
+    .catch(e => {
+      console.error(e);
+      res.status(500).end();
     })
 })
 
@@ -254,11 +247,17 @@ app.delete("/cards/:cardsId", (req, res) => {
   if (!id) return res.status(400).end();
   const db = getDB();
   db.collection("cards")
-    .remove({
+    .delete({
       _id: createObjectId(id)
     })
     .then(result => {
       res.status(204).end();
+      return db.collection("checklists").deleteMany({
+        card: createObjectId(id)
+      })
+    })
+    .then(result => {
+      console.log(result)
     })
 })
 

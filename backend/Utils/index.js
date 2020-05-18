@@ -23,11 +23,12 @@ function toArray(array, key) {
   rv.push(array[0][key]);
   let j = 0;
   for (let i = 0; i < array.length; i += 1) {
-    if (array[i][key] !== rv[j]) {
-      rv.push(array[i][key]);
+    if (array[i][key].toString() !== rv[j].toString()) {
+      rv.push(array[i][key].toString());
       j += 1;
     }
   }
+
   return rv;
 
 }
