@@ -18,28 +18,13 @@ function jsonParser(req, res, next) {
   }
 }
 
-function toArray(array, key) {
-  let rv = [];
-  rv.push(array[0][key]);
-  let j = 0;
-  for (let i = 0; i < array.length; i += 1) {
-    if (array[i][key].toString() !== rv[j].toString()) {
-      rv.push(array[i][key].toString());
-      j += 1;
-    }
+function validateData(data, acceptedKeys) {
+  for (let key of acceptedKeys) {
+    if (data.hasOwnProperty(key)) return true;
   }
+  return false;
 
-  return rv;
-
-}
-
-function includeDataInLists(array, key, newKey, includeArray, includeKey) {
-  for (let data of array) {
-    data[newKey] = includeArray.filter(x => x[includeKey] === data[key]);
-  }
-  return array;
 }
 
 module.exports.jsonParser = jsonParser;
-module.exports.toArray = toArray;
-module.exports.includeDataInLists = includeDataInLists;
+module.exports.validateData = validateData;

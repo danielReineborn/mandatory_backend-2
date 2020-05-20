@@ -6,16 +6,16 @@ import AddList from "./AddList";
 
 const BoardWrapper = styled.section`
   height: 100vh;
-  width: 100vw;
+  min-width: 100vw;
   display: flex;
   flex-flow: column;
   background-color: #3DABDE;
+  overflow: auto;
 
   .title-cont {
     width: 125px;
     margin: 25px;
     padding: 10px;
-  
     background-color: #319CC9;
     border-radius: 8px;
   }
@@ -23,13 +23,14 @@ const BoardWrapper = styled.section`
   .board-title {
     margin: 0px;
     color: #ffffff;
-    text-align: center;
-    
+    text-align: center; 
   }
-  .list-cont {
 
+  .list-cont {
     display: flex;
-    flex-flow: row-wrap;
+    justify-content: flex-start;
+    overflow: auto;
+    min-height: 450px;
   }
 
 `
@@ -39,12 +40,12 @@ export default function Board() {
   useEffect(() => {
     axios.get("/lists")
       .then(response => {
-        console.log(response.data.data);
         let data = response.data.data
         setLists(data)
 
         return () => {
           //cancel stuff
+          // cancel token.axios;
         }
       })
   }, [])

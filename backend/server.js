@@ -19,7 +19,7 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   let start = Date.now();
   res.once("finish", () => {
-    let log = `Method: ${req.method}, Path: ${req.path}, Status: ${res.statusCode} Response Time: ${Date.now()-start}`;
+    let log = `Method: ${req.method}, Path: ${req.path}, Status: ${res.statusCode}, Response Time: ${Date.now()-start}`;
     console.log(log);
   })
   next();
@@ -126,7 +126,7 @@ app.post("/cards", (req, res) => {
 
 app.post("/checklists", (req, res) => {
   let data = req.body;
-  if (!data.card || !data.list) return res.status(400).end();
+  if (!data.card || !data.list || data.todo) return res.status(400).end();
   data.list = createObjectId(data.list);
 
   data.card = createObjectId(data.card);
@@ -177,8 +177,9 @@ app.patch("/lists/:listId", (req, res) => {
 app.patch("/cards/:cardsId", (req, res) => {
   let id = req.params.cardsId;
   let data = req.body;
+  let editableKeys = ["list", "name", "description"];
+  if (!fn.validateData(data, editableKeys)) return res.status(400).end(); //Editable in card.
 
-  if (!id) return res.status(400).end();
   const db = getDB();
   db.collection("cards")
     .updateOne({
@@ -187,7 +188,11 @@ app.patch("/cards/:cardsId", (req, res) => {
       $set: data
     }, )
     .then(result => {
-      res.json(result) //checka result
+      res.status(201).json(data); //checka result
+    })
+    .catch(e => {
+      console.error(e);
+      res.status(500).end();
     })
 })
 
@@ -205,6 +210,10 @@ app.patch("/checklists/:todoId", (req, res) => {
     }, )
     .then(result => {
       res.json(result) //checka result
+    })
+    .catch(e => {
+      console.error(e);
+      res.status(500).end();
     })
 
 })

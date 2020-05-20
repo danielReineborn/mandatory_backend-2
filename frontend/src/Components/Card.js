@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import axios from "axios";
-
+import CardModal from "./CardModal";
 const CardWrapper = styled.div`
   height: 40px;
   width: 90%;
@@ -14,10 +14,31 @@ const CardWrapper = styled.div`
 `
 
 export default function Card({ card }) {
+  const [openCard, setOpenCard] = useState(false);
+  const [todos, setTodos] = useState([]);
 
+
+  useEffect(() => {
+    axios.get(`/checklists/${card._id}`)
+      .then(response => {
+        console.log(response)
+        let data = response.data.data;
+        setTodos(data);
+      })
+  }, [])
+
+  // hantera onchange på todos Form. 
   return (
-    <CardWrapper>
+    <CardWrapper onClick={() => setOpenCard(true)}>
       <p>{card.name}</p>
+      <CardModal
+        listId={card.list}
+        card={card}
+        open={openCard}
+        close={setOpenCard}
+        /* todoChange={onChange} */
+        todos={todos}
+      />
     </CardWrapper>
   )
 }
