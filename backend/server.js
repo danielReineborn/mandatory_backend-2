@@ -121,7 +121,36 @@ app.post("/cards", (req, res) => {
       console.error(e)
       res.status(500).end();
     })
+})
 
+app.post("/cards/move/:cardId/lists/:listId", (req, res) => {
+  let cardId = req.params.cardId;
+  let listId = req.params.listId;
+  const db = getDB();
+  db.collection("lists")
+    .findOne({
+      _id: createObjectId(listId)
+    })
+  then(result => {
+      if (!result) return res.status(400).end();
+
+      return db.collection("cards")
+        .updateOne({
+          _id: createObjectId(cardId)
+        }, {
+          $set: {
+            list: createObjectId(listId)
+          }
+        })
+    })
+    .then(result => {
+      if (!result) res.status(400).end();
+      res.status(201).json(result);
+    })
+    .catch(e => {
+      console.error(e);
+      res.status(500).end();
+    })
 })
 
 app.post("/checklists", (req, res) => {
