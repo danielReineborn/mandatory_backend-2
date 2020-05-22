@@ -13,15 +13,15 @@ const CardWrapper = styled.div`
   align-items: center;
 `
 
-export default function Card({ card }) {
+export default function Card({ change, card, lists }) {
   const [openCard, setOpenCard] = useState(false);
   const [todos, setTodos] = useState([]);
 
 
   useEffect(() => {
+    console.log("RERENDER")
     axios.get(`/checklists/${card._id}`)
       .then(response => {
-        console.log(response)
         let data = response.data.data;
         setTodos(data);
       })
@@ -32,7 +32,9 @@ export default function Card({ card }) {
     <CardWrapper onClick={() => setOpenCard(true)}>
       <p>{card.name}</p>
       <CardModal
+        lists={lists}
         listId={card.list}
+        change={change}
         card={card}
         open={openCard}
         close={setOpenCard}

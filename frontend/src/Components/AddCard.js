@@ -57,7 +57,7 @@ export default function AddCard({ listId, setCards, cards }) {
   return (
     <Wrapper>
       <form className="form" onSubmit={onSubmit} action="">
-        <input autoComplete="off" placeholder="Add card.." className="form-input" onChange={onChange} value={value} type="text" name="addcard" id="addcard" />
+        <input autoComplete="off" placeholder="Add card.." className="form-input" onChange={onChange} value={value} type="text" name="addcard" />
       </form>
 
     </Wrapper>

@@ -31,9 +31,10 @@ const ListWrapper = styled.div`
   }
 `
 
-export default function List({ list, setLists, lists }) {
+export default function List({ listChange, change, list, setLists, lists }) {
   const [cards, setCards] = useState([]);
   const [isClicked, setIsClicked] = useState(false);
+
 
   useEffect(() => {
     axios.get(`/cards/${list._id}`)
@@ -41,12 +42,16 @@ export default function List({ list, setLists, lists }) {
         console.log(response.data.data);
         let data = response.data.data
         setCards(data)
+        listChange(false);
 
-        return () => {
-          //cancel listener
-        }
+
       })
-  }, [list._id])
+    return () => {
+      //cancel listener
+    }
+  }, [list._id, change])
+
+
 
   return (
     <>
@@ -55,7 +60,7 @@ export default function List({ list, setLists, lists }) {
           <p className="list-title">{list.name}</p>
         </div>
         {cards.map(card => {
-          return <Card card={card} key={card._id}></Card>;
+          return <Card change={listChange} lists={lists} card={card} key={card._id}></Card>;
         })}
         <AddCard cards={cards} setCards={setCards} listId={list._id} />
       </ListWrapper>

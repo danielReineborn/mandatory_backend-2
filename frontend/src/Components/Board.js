@@ -37,18 +37,33 @@ const BoardWrapper = styled.section`
 
 export default function Board() {
   const [lists, setLists] = useState([])
+  const [listChange, setListChange] = useState(false)
+
   useEffect(() => {
     axios.get("/lists")
       .then(response => {
         let data = response.data.data
         setLists(data)
-
-        return () => {
-          //cancel stuff
-          // cancel token.axios;
-        }
       })
+    return () => {
+      //cancel stuff
+      // cancel token.axios;
+    }
   }, [])
+
+  useEffect(() => {
+    axios.get("/lists")
+      .then(response => {
+        let data = response.data.data
+        console.log(data);
+        setLists(data)
+        setListChange(false)
+      })
+    return () => {
+      //cancel stuff
+      // cancel token.axios;
+    }
+  }, [listChange])
 
   return (
     <BoardWrapper>
@@ -58,7 +73,7 @@ export default function Board() {
       </div>
       <section className="list-cont">
         {lists.map(list => {
-          return <List list={list} lists={lists} setLists={setLists} key={list._id}></List>
+          return <List listChange={setListChange} change={listChange} list={list} lists={lists} setLists={setLists} key={list._id}></List>
         })}
         <AddList lists={lists} setLists={setLists} />
       </section>

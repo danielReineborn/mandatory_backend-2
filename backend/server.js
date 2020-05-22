@@ -131,7 +131,7 @@ app.post("/cards/move/:cardId/lists/:listId", (req, res) => {
     .findOne({
       _id: createObjectId(listId)
     })
-  then(result => {
+    .then(result => {
       if (!result) return res.status(400).end();
 
       return db.collection("cards")

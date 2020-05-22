@@ -29,9 +29,28 @@ const ModalWrapper = styled.section`
   }
 
   .cont {
-    min-height: 175px;
+    min-height: 150px;
     width: 100%;
+    
 
+  }
+  .name {
+    margin-top: 15px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .name-cont:last-child {
+    display: flex;
+
+  }
+
+  .btn-exit {
+    height: 20px;
+    width: 20px;
+    margin: 3px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
 `
@@ -45,13 +64,12 @@ const Backdrop = styled.div`
   left: 0
 `
 
-export default function CardModal({ listId, card, open, close, todoChange, todos }) {
+export default function CardModal({ change, listId, card, open, close, todoChange, todos, lists }) {
   const [desc, setDesc] = useState("");
   const [todo, setTodo] = useState("");
   const [showDesc, setShowDesc] = useState(false);
 
   const [cardCopy, setCardCopy] = useState(false);
-
 
   useEffect(() => {
     let copy = { ...card, };
@@ -63,8 +81,6 @@ export default function CardModal({ listId, card, open, close, todoChange, todos
     }
 
   }, [])
-
-
 
   function descChange(e) {
     let value = e.target.value;
@@ -116,7 +132,20 @@ export default function CardModal({ listId, card, open, close, todoChange, todos
   function backdrop(e) {
     e.stopPropagation();
     close(false);
-    console.log("click click")
+  }
+
+  function moveCard(e) {
+    let moveToList = e.target.value;
+    //axios.post
+    axios.post(`/cards/move/${card._id}/lists/${moveToList}`)
+      .then(result => {
+        console.log(result);
+        close(false);
+        change(true);
+
+      })
+    //close()
+
   }
 
   if (open) {
@@ -125,8 +154,22 @@ export default function CardModal({ listId, card, open, close, todoChange, todos
         <ModalWrapper>
           <section className="main-view">
             <div className="cont name">
-              <h4>{card.name}</h4>
-              <p>Created {moment(cardCopy.created).format('MMMM Do YYYY, h:mm:ss')}</p>
+              <div className="name-cont">
+                <h4>{card.name}</h4>
+                <p>Created: {moment(cardCopy.created).format('MMMM Do YYYY, h:mm')}</p>
+
+              </div>
+              <div className="name-cont">
+                <div>
+                  <select onChange={moveCard} name="lists" id="lists">
+                    <option key={"self"} value="move">Move card:</option>
+                    {lists.map(x => {
+                      if (x._id !== listId) return <option key={x._id} value={x._id}>{x.name}</option>
+                    })}
+
+                  </select>
+                </div>
+              </div>
               <button onClick={backdrop} className="btn-exit">X</button>
             </div>
             <div className="cont description">
