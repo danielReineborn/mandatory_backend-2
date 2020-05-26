@@ -4,6 +4,8 @@ import styled from "styled-components";
 import moment from "moment";
 import axios from "axios";
 
+import DelTodo from "./DelTodo";
+
 const ModalWrapper = styled.section`
   z-index: 1;
   height: 500px;
@@ -22,6 +24,12 @@ const ModalWrapper = styled.section`
     height: 100%;
     width: 80%;
     margin: auto;
+    display: flex;
+    flex-flow: column;
+    justify-content: flex-start;
+  }
+  .checklist {
+    height: 250px;
   }
 
   .btn-exit {
@@ -29,30 +37,70 @@ const ModalWrapper = styled.section`
   }
 
   .cont {
-    min-height: 150px;
     width: 100%;
-    
-
   }
   .name {
-    margin-top: 15px;
+    margin: 15px 0px 8px 0px;
     display: flex;
     justify-content: space-between;
+    height: 75px;
   }
   .name-cont:last-child {
     display: flex;
 
   }
-
+  .name-cont {
+    height: 75px;
+  }
   .btn-exit {
     height: 20px;
     width: 20px;
-    margin: 3px;
     display: flex;
     justify-content: center;
     align-items: center;
+    margin: 2px;
+    :hover {
+      cursor: pointer;
+      background-color: rgba(0, 0, 0, 0.3);
+      color: #ffffff;
+    }
   }
+ .todo-cont {
+    display: flex;
+    flex-flow: column;
+    justify-content: flex-start;
+    height: 170px;
+    overflow: auto;
+ }
 
+ .checkbox {
+    height: 20px;
+    width: 20px;
+    margin: 4px;
+    :hover {
+      cursor: pointer;
+    }
+ }
+ .check-label {
+    margin: 6px 0px 0px 0px;
+    display: flex;
+    align-items: center;
+ }
+
+ .flex-cont {
+   display: flex;
+   
+
+ }
+
+ .todo-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    :hover {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+ }
 `
 const Backdrop = styled.div`
   z-index: 0;
@@ -64,17 +112,18 @@ const Backdrop = styled.div`
   left: 0
 `
 
-export default function CardModal({ change, listId, card, open, close, todoChange, todos, lists }) {
+export default function CardModal({ change, listId, card, open, setTodos, close, todos, lists }) {
   const [desc, setDesc] = useState("");
   const [todo, setTodo] = useState("");
+  const [name, setName] = useState(card.name);
   const [showDesc, setShowDesc] = useState(false);
+  const [editName, setEditName] = useState(false);
 
-  const [cardCopy, setCardCopy] = useState(false);
+  const [cardCopy, setCardCopy] = useState({});
 
   useEffect(() => {
     let copy = { ...card, };
     setCardCopy(copy);
-
     if (card.description.length > 0) {
       setShowDesc(true);
       setDesc(card.description);
@@ -87,23 +136,55 @@ export default function CardModal({ change, listId, card, open, close, todoChang
     setDesc(value);
   }
 
-  function todoChange(e) {
+  function onTodo(e) {
     let value = e.target.value;
     setTodo(value);
   }
 
   function handleTodo(e) {
     e.preventDefault();
+    console.log("kööörs")
+    e.stopPropagation();
+    if (todo.length < 1) return;
     let data = {
-      list: listId,
       card: card._id,
       todo: todo,
+      done: false,
     }
     axios.post(`/checklists`, data)
       .then(response => {
         console.log(response);
+        data._id = response.data._id;
+        let listCopy = [...todos];
+        listCopy.push(data);
+        setTodos(listCopy);
       })
+
     setTodo("");
+  }
+
+  function onTodoChange(e) {
+    e.stopPropagation();
+    console.log(e.target.name);
+
+    let todoId = e.target.name;
+    let todosCopy = [...todos];
+    let clickedTodo = todosCopy.find(x => x._id === todoId);
+
+    let data = {
+      done: !clickedTodo.done,
+    }
+    console.log(data);
+    axios.patch(`/checklists/${todoId}`, data)
+      .then(result => {
+        console.log(result);
+        if (result.status === 200) {
+          clickedTodo.done = !clickedTodo.done;
+          console.log(todos);
+          let newTodos = [...todosCopy];
+          setTodos(newTodos);
+        }
+      })
   }
 
   function handleDesc(e) {
@@ -144,8 +225,47 @@ export default function CardModal({ change, listId, card, open, close, todoChang
         change(true);
 
       })
-    //close()
+  }
 
+  function nameChange() {
+    setEditName(true);
+  }
+
+  function nameSubmit(e) {
+    e.preventDefault();
+    let data = {
+      name: name,
+    }
+    axios.patch(`/cards/${card._id}`, data)
+      .then(result => {
+        if (result.status === 201) {
+          console.log(result);
+          change(true);
+          setEditName(false);
+        }
+      })
+  }
+
+  function onNameChange(e) {
+    let value = e.target.value;
+    setName(value);
+  }
+
+  function deleteTodo(e) {
+    console.log("Bubble?")
+    axios.delete(`/checklists/${todo._id}`)
+      .then(result => {
+        console.log(result);
+      })
+  }
+
+  function deleteCard() {
+    axios.delete(`/cards/${card._id}`)
+      .then(result => {
+        console.log(result);
+        close(false);
+        change(true);
+      })
   }
 
   if (open) {
@@ -155,9 +275,13 @@ export default function CardModal({ change, listId, card, open, close, todoChang
           <section className="main-view">
             <div className="cont name">
               <div className="name-cont">
-                <h4>{card.name}</h4>
-                <p>Created: {moment(cardCopy.created).format('MMMM Do YYYY, h:mm')}</p>
+                <div className="flex-cont">
+                  {!editName ? <h4>{card.name}</h4> : <form onSubmit={nameSubmit} action=""><input type="text" onChange={onNameChange} value={name} /> </form>}
+                  <button onClick={nameChange}>Edit</button>
 
+                </div>
+                <p>Created: {moment(cardCopy.created).format('MMMM Do YYYY, h:mm')}</p>
+                <button onClick={deleteCard} className="del-btn">Delete card</button>
               </div>
               <div className="name-cont">
                 <div>
@@ -172,6 +296,24 @@ export default function CardModal({ change, listId, card, open, close, todoChang
               </div>
               <button onClick={backdrop} className="btn-exit">X</button>
             </div>
+            <div className="cont checklist">
+              <h4>Checklist</h4>
+              <form onSubmit={handleTodo}>
+                <input value={todo} onChange={onTodo} placeholder="Add todo" className="text-input" type="text" name="check" id="check" />
+                <div className="todo-cont">
+                  {todos.map(todo => {
+                    return (
+                      <div key={todo._id} className="todo-item">
+                        <label className="check-label" htmlFor={todo._id}><input className="checkbox" onChange={onTodoChange} checked={todo.done} type="checkbox" name={todo._id} />{todo.todo}</label>
+                        <DelTodo todos={todos} setTodos={setTodos} id={todo._id} />
+                      </div>
+                    )
+                  })}
+
+                </div>
+              </form>
+
+            </div>
             <div className="cont description">
               <h4>Description</h4>
               {!showDesc ? <form onSubmit={handleDesc}>
@@ -185,15 +327,7 @@ export default function CardModal({ change, listId, card, open, close, todoChang
                   <button onClick={() => setShowDesc(false)}>Edit</button>
                 </div>}
             </div>
-            <div className="cont checklist">
-              <form onSubmit={handleTodo}>
-                <input value={todo} onChange={todoChange} className="text-input" type="text" name="check" id="check" />
-                {todos.map(todo => {
-                  return <label htmlFor=""><input onChange={todoChange} checked={todo.done ? "true" : "false"} type="checkbox" name="" id="" /></label>
-                })}
-              </form>
 
-            </div>
           </section>
         </ModalWrapper>
         <Backdrop onClick={backdrop} />

@@ -155,8 +155,8 @@ app.post("/cards/move/:cardId/lists/:listId", (req, res) => {
 
 app.post("/checklists", (req, res) => {
   let data = req.body;
-  if (!data.card || !data.list || data.todo) return res.status(400).end();
-  data.list = createObjectId(data.list);
+  console.log(data);
+  if (!data.card || !data.todo) return res.status(400).end();
 
   data.card = createObjectId(data.card);
 
@@ -229,7 +229,9 @@ app.patch("/checklists/:todoId", (req, res) => {
   let id = req.params.todoId;
   let data = req.body;
 
-  if (!id) return res.status(400).end();
+  let editableKeys = ["done", "card", "todo"];
+  if (!fn.validateData(data, editableKeys)) return res.status(400).end(); //Editable in card.
+
   const db = getDB();
   db.collection("checklists")
     .updateOne({
@@ -251,24 +253,37 @@ app.delete("/lists/:listId", (req, res) => {
   let id = req.params.listId;
 
   if (!id) return res.status(400).end();
+  let cardIds = [];
   const db = getDB();
   db.collection("lists")
     .deleteOne({
       _id: createObjectId(id)
     })
     .then(result => {
-      console.log("LIST:", result);
       res.status(204).end();
 
-      return db.collection("cards").deleteMany({
+      return db.collection("cards").find({
         list: createObjectId(id),
-      })
+      }).toArray()
     })
     .then(result => {
       console.log("CARDS:", result)
-      return db.collection("checklists").deleteMany({
+      for (let data of result) {
+        cardIds.push(createObjectId(data._id));
+      }
+
+      return db.collection("cards").deleteMany({
         list: createObjectId(id)
       })
+    })
+    .then(result => {
+      //arr of cards _id. deleteMany({card: {$in []}})
+      return db.collection("checklists").deleteMany({
+        card: {
+          $in: cardIds
+        }
+      })
+
     })
     .then(result => {
       console.log("CHECKLISTS:", result);
@@ -285,7 +300,7 @@ app.delete("/cards/:cardsId", (req, res) => {
   if (!id) return res.status(400).end();
   const db = getDB();
   db.collection("cards")
-    .delete({
+    .deleteOne({
       _id: createObjectId(id)
     })
     .then(result => {
@@ -297,6 +312,10 @@ app.delete("/cards/:cardsId", (req, res) => {
     .then(result => {
       console.log(result)
     })
+    .catch(e => {
+      res.status(500).end()
+      console.error(e);
+    })
 })
 
 app.delete("/checklists/:todoId", (req, res) => {
@@ -305,7 +324,7 @@ app.delete("/checklists/:todoId", (req, res) => {
   if (!id) return res.status(400).end();
   const db = getDB();
   db.collection("checklists")
-    .remove({
+    .deleteOne({
       _id: createObjectId(id)
     })
     .then(result => {

@@ -19,10 +19,10 @@ export default function Card({ change, card, lists }) {
 
 
   useEffect(() => {
-    console.log("RERENDER")
     axios.get(`/checklists/${card._id}`)
       .then(response => {
         let data = response.data.data;
+        console.log(data);
         setTodos(data);
       })
   }, [])
@@ -38,7 +38,7 @@ export default function Card({ change, card, lists }) {
         card={card}
         open={openCard}
         close={setOpenCard}
-        /* todoChange={onChange} */
+        setTodos={setTodos}
         todos={todos}
       />
     </CardWrapper>
