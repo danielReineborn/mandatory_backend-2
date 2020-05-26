@@ -60,21 +60,21 @@ const Btn = styled.div`
   
 
 `
-export default function MenuBtn({ type, id, isClicked, updateClick, icon, lists, setLists }) {
 
+export default function MenuBtn({ type, id, isClicked, updateClick, icon, lists, setLists }) {
   useEffect(() => {
 
-    function handleClickOutside(event) {
-      if (ref.current && !ref.current.contains(event.target)) {
-        updateClick(false);
-      }
-    }
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [])
 
+  function handleClickOutside(event) {
+    if (ref.current && !ref.current.contains(event.target)) {
+      updateClick(false);
+    }
+  }
   const ref = useRef();
 
   function delPost(type, id) {
@@ -83,6 +83,9 @@ export default function MenuBtn({ type, id, isClicked, updateClick, icon, lists,
         console.log(response);
         let newLists = lists.filter(x => x._id !== id)
         setLists(newLists);
+      })
+      .catch(e => {
+        console.error(e);
       })
   }
 
@@ -100,6 +103,9 @@ export default function MenuBtn({ type, id, isClicked, updateClick, icon, lists,
       </div>
       <div className="menu-cont menu-click" onClick={onClick}>
         <p className="menu-item">Delete this {type}</p>
+      </div>
+      <div className="menu-cont menu-click" onClick={onClick}>
+        <p className="menu-item">Rename list</p>
       </div>
     </div >
 

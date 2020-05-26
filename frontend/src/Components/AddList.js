@@ -48,7 +48,9 @@ export default function AddList({ lists, setLists }) {
         let newList = response.data
         let newLists = [...lists, newList];
         setLists(newLists);
-
+      })
+      .catch(e => {
+        console.error(e);
       })
 
     setValue("");

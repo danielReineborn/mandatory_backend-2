@@ -45,6 +45,9 @@ export default function Board() {
         let data = response.data.data
         setLists(data)
       })
+      .catch(e => {
+        console.error(e);
+      })
     return () => {
       //cancel stuff
       // cancel token.axios;
@@ -58,6 +61,9 @@ export default function Board() {
         console.log(data);
         setLists(data)
         setListChange(false)
+      })
+      .catch(e => {
+        console.error(e);
       })
     return () => {
       //cancel stuff

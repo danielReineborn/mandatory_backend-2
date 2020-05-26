@@ -25,6 +25,9 @@ export default function Card({ change, card, lists }) {
         console.log(data);
         setTodos(data);
       })
+      .catch(e => {
+        console.error(e);
+      })
   }, [])
 
   // hantera onchange på todos Form. 

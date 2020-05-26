@@ -31,6 +31,9 @@ export default function DelTodo({ id, todos, setTodos }) {
           setTodos(newTodos);
         }
       })
+      .catch(e => {
+        console.error(e);
+      })
   }
   return (
     <Delete onClick={onClick} className="btn-exit">x</Delete>

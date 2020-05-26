@@ -159,6 +159,9 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
         listCopy.push(data);
         setTodos(listCopy);
       })
+      .catch(e => {
+        console.error(e);
+      })
 
     setTodo("");
   }
@@ -184,6 +187,9 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
           let newTodos = [...todosCopy];
           setTodos(newTodos);
         }
+      })
+      .catch(e => {
+        console.error(e);
       })
   }
 
@@ -223,7 +229,9 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
         console.log(result);
         close(false);
         change(true);
-
+      })
+      .catch(e => {
+        console.error(e);
       })
   }
 
@@ -244,6 +252,9 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
           setEditName(false);
         }
       })
+      .catch(e => {
+        console.error(e);
+      })
   }
 
   function onNameChange(e) {
@@ -257,6 +268,9 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
       .then(result => {
         console.log(result);
       })
+      .catch(e => {
+        console.error(e);
+      })
   }
 
   function deleteCard() {
@@ -265,6 +279,9 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
         console.log(result);
         close(false);
         change(true);
+      })
+      .catch(e => {
+        console.error(e);
       })
   }
 

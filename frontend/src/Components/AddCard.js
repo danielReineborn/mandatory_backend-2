@@ -50,7 +50,10 @@ export default function AddCard({ listId, setCards, cards }) {
         let newCard = response.data;
         let newCards = [...cards, newCard];
         setCards(newCards);
-      });
+      })
+      .catch(e => {
+        console.error(e);
+      })
 
     setValue("");
   }

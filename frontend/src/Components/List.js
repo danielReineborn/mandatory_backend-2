@@ -43,8 +43,9 @@ export default function List({ listChange, change, list, setLists, lists }) {
         let data = response.data.data
         setCards(data)
         listChange(false);
-
-
+      })
+      .catch(e => {
+        console.error(e);
       })
     return () => {
       //cancel listener
