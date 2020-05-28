@@ -22,6 +22,7 @@ export default function DelTodo({ id, todos, setTodos }) {
 
   function onClick(e) {
     e.preventDefault();
+    e.stopPropagation();
 
     console.log("Bubble?")
     axios.delete(`/checklists/${id}`)

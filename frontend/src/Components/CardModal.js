@@ -143,7 +143,6 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
 
   function handleTodo(e) {
     e.preventDefault();
-    console.log("kööörs")
     e.stopPropagation();
     if (todo.length < 1) return;
     let data = {
@@ -153,7 +152,6 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
     }
     axios.post(`/checklists`, data)
       .then(response => {
-        console.log(response);
         data._id = response.data._id;
         let listCopy = [...todos];
         listCopy.push(data);
@@ -168,7 +166,6 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
 
   function onTodoChange(e) {
     e.stopPropagation();
-    console.log(e.target.name);
 
     let todoId = e.target.name;
     let todosCopy = [...todos];
@@ -177,13 +174,10 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
     let data = {
       done: !clickedTodo.done,
     }
-    console.log(data);
     axios.patch(`/checklists/${todoId}`, data)
       .then(result => {
-        console.log(result);
-        if (result.status === 200) {
+        if (result.status === 201) {
           clickedTodo.done = !clickedTodo.done;
-          console.log(todos);
           let newTodos = [...todosCopy];
           setTodos(newTodos);
         }
@@ -202,7 +196,6 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
 
     axios.patch(`/cards/${card._id}`, data)
       .then(response => {
-        console.log(response);
         if (response.status === 201) {
           let data = response.data.description;
           setDesc(data);
@@ -226,7 +219,6 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
     //axios.post
     axios.post(`/cards/move/${card._id}/lists/${moveToList}`)
       .then(result => {
-        console.log(result);
         close(false);
         change(true);
       })
@@ -247,7 +239,6 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
     axios.patch(`/cards/${card._id}`, data)
       .then(result => {
         if (result.status === 201) {
-          console.log(result);
           change(true);
           setEditName(false);
         }
@@ -260,17 +251,6 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
   function onNameChange(e) {
     let value = e.target.value;
     setName(value);
-  }
-
-  function deleteTodo(e) {
-    console.log("Bubble?")
-    axios.delete(`/checklists/${todo._id}`)
-      .then(result => {
-        console.log(result);
-      })
-      .catch(e => {
-        console.error(e);
-      })
   }
 
   function deleteCard() {
@@ -317,18 +297,18 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
               <h4>Checklist</h4>
               <form onSubmit={handleTodo}>
                 <input value={todo} onChange={onTodo} placeholder="Add todo" className="text-input" type="text" name="check" id="check" />
-                <div className="todo-cont">
-                  {todos.map(todo => {
-                    return (
-                      <div key={todo._id} className="todo-item">
-                        <label className="check-label" htmlFor={todo._id}><input className="checkbox" onChange={onTodoChange} checked={todo.done} type="checkbox" name={todo._id} />{todo.todo}</label>
-                        <DelTodo todos={todos} setTodos={setTodos} id={todo._id} />
-                      </div>
-                    )
-                  })}
-
-                </div>
               </form>
+              <div className="todo-cont">
+                {todos.map(todo => {
+                  return (
+                    <div key={todo._id} className="todo-item">
+                      <label className="check-label" htmlFor={todo._id}><input className="checkbox" onChange={onTodoChange} checked={todo.done} type="checkbox" name={todo._id} />{todo.todo}</label>
+                      <DelTodo todos={todos} setTodos={setTodos} id={todo._id} />
+                    </div>
+                  )
+                })}
+
+              </div>
 
             </div>
             <div className="cont description">

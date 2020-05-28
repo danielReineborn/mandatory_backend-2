@@ -7,8 +7,8 @@ const Btn = styled.div`
   height: 30px;
   width: 30px;
   position: relative;
-  top: 20px;
-  left: -34px;
+  top: 0px;
+  left: 0px;
   border-radius: 2px;
   text-align: center;
   line-height: 15px;
@@ -16,6 +16,9 @@ const Btn = styled.div`
   cursor: pointer;
   background-color: rgba(0, 0, 0, 0.2);
 
+}
+:active {
+  background-color: rgba(0, 0, 0, 0.4);
 }
   .mask {
     height: 100vh;
@@ -36,7 +39,6 @@ const Btn = styled.div`
     position: absolute;
     top: 34px;
     left: 0px;
-
   }
 
   .menu-cont {
@@ -45,11 +47,23 @@ const Btn = styled.div`
     display: flex;
     justify-content: flex-start;
     align-items: center;
+    border-radius: 4px;
+  }
+
+  .menu-click {
+    :hover {
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+
+    }
   }
   
   .menu-cont:first-child {
     justify-content: center;
     border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+    :hover {
+      cursor: default;
+    }
   }
 
   .menu-item {
@@ -61,7 +75,7 @@ const Btn = styled.div`
 
 `
 
-export default function MenuBtn({ type, id, isClicked, updateClick, icon, lists, setLists }) {
+export default function MenuBtn({ openRename, type, id, isClicked, updateClick, icon, lists, setLists }) {
   useEffect(() => {
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -89,6 +103,12 @@ export default function MenuBtn({ type, id, isClicked, updateClick, icon, lists,
       })
   }
 
+  function reName(e) {
+    e.stopPropagation();
+    openRename(true);
+    updateClick(false);
+  }
+
   function onClick(e) {
     e.stopPropagation();
     delPost(type, id);
@@ -96,7 +116,7 @@ export default function MenuBtn({ type, id, isClicked, updateClick, icon, lists,
   }
 
   let menu;
-  isClicked ? menu = <section ref={ref} className="menu-cont">
+  isClicked ? menu = <section ref={ref} className="menu-section">
     <div className="menu">
       <div className="menu-cont">
         <p className="menu-item">{`${capLetter(type)}menu`}</p>
@@ -104,7 +124,7 @@ export default function MenuBtn({ type, id, isClicked, updateClick, icon, lists,
       <div className="menu-cont menu-click" onClick={onClick}>
         <p className="menu-item">Delete this {type}</p>
       </div>
-      <div className="menu-cont menu-click" onClick={onClick}>
+      <div className="menu-cont menu-click" onClick={reName}>
         <p className="menu-item">Rename list</p>
       </div>
     </div >

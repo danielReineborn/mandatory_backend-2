@@ -7,6 +7,8 @@ const Wrapper = styled.div`
   width: 250px;
   height: 40px;
   border-radius: 4px;
+  display: flex;
+  flex: 0 0 auto;
 
   .addlist-input {
     height: 40px;

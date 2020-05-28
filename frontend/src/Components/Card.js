@@ -11,6 +11,15 @@ const CardWrapper = styled.div`
   border-radius: 4px;
   display: flex;
   align-items: center;
+  :hover {
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+
+  p {
+    margin: 0px 0px 0px 8px;
+    font-size: 0.8rem;
+  }
 `
 
 export default function Card({ change, card, lists }) {
@@ -30,7 +39,6 @@ export default function Card({ change, card, lists }) {
       })
   }, [])
 
-  // hantera onchange på todos Form. 
   return (
     <CardWrapper onClick={() => setOpenCard(true)}>
       <p>{card.name}</p>

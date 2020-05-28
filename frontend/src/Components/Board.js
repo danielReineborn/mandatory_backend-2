@@ -6,11 +6,10 @@ import AddList from "./AddList";
 
 const BoardWrapper = styled.section`
   height: 100vh;
-  min-width: 100vw;
+  width: 100vw;
   display: flex;
   flex-flow: column;
   background-color: #3DABDE;
-  overflow: auto;
 
   .title-cont {
     width: 125px;
@@ -29,8 +28,8 @@ const BoardWrapper = styled.section`
   .list-cont {
     display: flex;
     justify-content: flex-start;
-    overflow: auto;
-    min-height: 450px;
+    overflow-x: scroll;
+    height: 100%;
   }
 
 `

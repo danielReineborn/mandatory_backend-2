@@ -7,14 +7,13 @@ const Wrapper = styled.footer`
   margin: 8px;
   width: 90%;
 
-
   .form {
     width: 100%;
   }
 
   .form-input {
     height: 40px;
-    padding: 4px;
+    padding: 8px;
     border: none;
     border-radius: 4px;
     outline: none;

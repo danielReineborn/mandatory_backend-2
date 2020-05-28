@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import ReactDOM from "react-dom";
 import styled from "styled-components";
 import axios from "axios";
@@ -7,10 +7,29 @@ const RenameModal = styled.section`
   z-index: 1;
   height: 200px;
   width: 200px;
-  position: aboslute;
+  position: absolute;
   top: 20%;
-  left: calc(50%-100px);
+  left: calc(50% - 100px);
+  background-color: #E5EFF5;
+  border-radius: 4px;
+  padding: 8px;
+  display: flex;
+  flex-flow: column;
+  justify-content: space-around;
+  align-items: center;
+  border: 1px solid #ffffff;
+  
+  form {
+    text-align: center;
+  }
 
+  button {
+    margin: 8px;
+  }
+
+  p {
+    font-size: 14px;
+  }
 `
 
 const Backdrop = styled.div`
@@ -22,8 +41,11 @@ const Backdrop = styled.div`
   top: 0;
   left: 0
 `
-export default function RenameList({ open, id, change, setOpen }) {
-  const [newName, setNewName] = useState("");
+export default function RenameList({ name, open, id, listChange, setOpen }) {
+
+
+  const [newName, setNewName] = useState(name);
+
 
   function onChange(e) {
     let value = e.target.value;
@@ -38,7 +60,11 @@ export default function RenameList({ open, id, change, setOpen }) {
     axios.patch(`/lists/${id}`, data)
       .then(result => {
         console.log(result);
-        //if result setOpen(false), change(true);
+        if (result.status === 201) {
+          listChange(true);
+          setOpen(false);
+
+        }
       })
   }
 
@@ -46,18 +72,23 @@ export default function RenameList({ open, id, change, setOpen }) {
     setOpen(false);
   }
 
-  if (open)
+  if (open) {
     return ReactDOM.createPortal(
       <>
         <RenameModal>
+          <div>
+            <p>Choose new name</p>
+          </div>
           <form onSubmit={onSubmit}>
-            <input onChange={onChange} value={newName} type="text" name="list" id="list" />
+            <input autoFocus="true" onChange={onChange} value={newName} type="text" name="list" id="list" />
             <button type="submit">Change</button>
-            <button onClick={}>Cancel</button>
+            <button onClick={() => setOpen(false)}>Cancel</button>
           </form>
         </RenameModal>
         <Backdrop onClick={backdrop} />
       </>, document.body
     )
+  }
+  return null;
 
 }

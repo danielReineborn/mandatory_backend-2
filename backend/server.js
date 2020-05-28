@@ -93,7 +93,7 @@ app.post("/lists", (req, res) => {
     })
     .catch(e => {
       console.error(e);
-      res.status(404).end();
+      res.status(500).end();
     })
 
 })
@@ -126,13 +126,15 @@ app.post("/cards", (req, res) => {
 app.post("/cards/move/:cardId/lists/:listId", (req, res) => {
   let cardId = req.params.cardId;
   let listId = req.params.listId;
+  if (!cardId || !listId) return res.status(400).end();
+
   const db = getDB();
   db.collection("lists")
     .findOne({
       _id: createObjectId(listId)
     })
     .then(result => {
-      if (!result) return res.status(400).end();
+      if (!result) return res.status(404).end();
 
       return db.collection("cards")
         .updateOne({
@@ -144,7 +146,7 @@ app.post("/cards/move/:cardId/lists/:listId", (req, res) => {
         })
     })
     .then(result => {
-      if (!result) res.status(400).end();
+      if (!result) res.status(404).end();
       res.status(201).json(result);
     })
     .catch(e => {
@@ -217,7 +219,7 @@ app.patch("/cards/:cardsId", (req, res) => {
       $set: data
     }, )
     .then(result => {
-      res.status(201).json(data); //checka result
+      res.status(201).json(data);
     })
     .catch(e => {
       console.error(e);
@@ -240,7 +242,7 @@ app.patch("/checklists/:todoId", (req, res) => {
       $set: data
     }, )
     .then(result => {
-      res.json(result) //checka result
+      res.status(201).json(result)
     })
     .catch(e => {
       console.error(e);
@@ -267,7 +269,6 @@ app.delete("/lists/:listId", (req, res) => {
       }).toArray()
     })
     .then(result => {
-      console.log("CARDS:", result)
       for (let data of result) {
         cardIds.push(createObjectId(data._id));
       }
@@ -277,16 +278,11 @@ app.delete("/lists/:listId", (req, res) => {
       })
     })
     .then(result => {
-      //arr of cards _id. deleteMany({card: {$in []}})
       return db.collection("checklists").deleteMany({
         card: {
           $in: cardIds
         }
       })
-
-    })
-    .then(result => {
-      console.log("CHECKLISTS:", result);
     })
     .catch(e => {
       console.error(e);
@@ -309,9 +305,6 @@ app.delete("/cards/:cardsId", (req, res) => {
         card: createObjectId(id)
       })
     })
-    .then(result => {
-      console.log(result)
-    })
     .catch(e => {
       res.status(500).end()
       console.error(e);
@@ -330,7 +323,10 @@ app.delete("/checklists/:todoId", (req, res) => {
     .then(result => {
       res.status(204).end();
     })
-
+    .catch(e => {
+      res.status(500).end()
+      console.error(e);
+    })
 })
 
 
