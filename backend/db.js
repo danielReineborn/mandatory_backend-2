@@ -25,5 +25,9 @@ module.exports = {
   },
   createObjectId(id) {
     return new ObjectId(id);
+  },
+  validId(id) {
+    return ObjectId.isValid(id);
   }
+
 }

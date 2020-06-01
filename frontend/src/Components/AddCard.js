@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
 
@@ -43,7 +43,6 @@ export default function AddCard({ listId, setCards, cards }) {
     }
     axios.post(`/cards`, card)
       .then(response => {
-        console.log(response);
         if (response.status === 201) {
           let newCard = response.data;
           let newCards = [...cards, newCard];

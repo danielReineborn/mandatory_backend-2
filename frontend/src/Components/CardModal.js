@@ -334,5 +334,4 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
       , document.body)
   }
   return null;
-
 }
