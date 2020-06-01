@@ -54,16 +54,15 @@ export default function RenameList({ name, open, id, listChange, setOpen }) {
 
   function onSubmit(e) {
     e.preventDefault();
+    if (e.target.list.value.length < 1) return;
     let data = {
       name: newName,
     }
     axios.patch(`/lists/${id}`, data)
       .then(result => {
-        console.log(result);
         if (result.status === 201) {
           listChange(true);
           setOpen(false);
-
         }
       })
   }
@@ -80,7 +79,7 @@ export default function RenameList({ name, open, id, listChange, setOpen }) {
             <p>Choose new name</p>
           </div>
           <form onSubmit={onSubmit}>
-            <input autoFocus="true" onChange={onChange} value={newName} type="text" name="list" id="list" />
+            <input autoFocus={true} onChange={onChange} value={newName} type="text" name="list" id="list" />
             <button type="submit">Change</button>
             <button onClick={() => setOpen(false)}>Cancel</button>
           </form>

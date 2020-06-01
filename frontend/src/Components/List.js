@@ -42,7 +42,6 @@ export default function List({ listChange, change, list, setLists, lists }) {
   useEffect(() => {
     axios.get(`/cards/${list._id}`)
       .then(response => {
-        console.log(response.data.data);
         let data = response.data.data
         setCards(data)
         listChange(false);

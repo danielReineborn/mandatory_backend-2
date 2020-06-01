@@ -31,16 +31,45 @@ app.get("/lists", (req, res) => {
     .find({})
     .toArray()
     .then(result => {
-      if (!result) return res.status(400).end();
+      if (!result) return res.status(404).end();
       res.status(200).json({
         data: result
       })
     })
     .catch(e => {
       console.error(e);
+      res.status(500).send({
+        error: e
+      });
     })
 })
 
+//Get specific list.
+app.get("/lists/:listId", (req, res) => {
+  let id = req.params.listId;
+  if (!id) return res.status(400).end();
+  const db = getDB();
+
+  db.collection("lists")
+    .findOne({
+      _id: createObjectId(id),
+    })
+    .then(result => {
+      console.log(result);
+      if (!result) return res.status(404).end();
+      res.status(200).json({
+        data: result
+      })
+    })
+    .catch(e => {
+      console.error(e);
+      res.status(500).send({
+        error: e
+      })
+    })
+})
+
+//ListId is required to get connected cards.
 app.get("/cards/:listId", (req, res) => {
   let id = req.params.listId;
 
@@ -58,11 +87,38 @@ app.get("/cards/:listId", (req, res) => {
     })
     .catch(e => {
       console.error(e);
+      res.status(500).send({
+        error: e
+      });
+    })
+})
+//Get specific card
+app.get("/cards/one/:cardId", (req, res) => {
+  console.log(req.params)
+  let id = req.params.cardId;
+  if (!id) return res.status(400).end();
+  const db = getDB();
+  db.collection("cards")
+    .find({
+      _id: createObjectId(id),
+    })
+    .toArray()
+    .then(result => {
+      res.json({
+        data: result,
+      })
+    })
+    .catch(e => {
+      console.error(e);
+      res.status(500).send({
+        error: e
+      })
     })
 })
 
 app.get("/checklists/:cardId", (req, res) => {
   let id = req.params.cardId;
+  id = createObjectId(id);
 
   const db = getDB();
   db.collection("checklists")
@@ -78,6 +134,9 @@ app.get("/checklists/:cardId", (req, res) => {
     })
     .catch(e => {
       console.error(e);
+      res.status(500).send({
+        error: e
+      });
     })
 })
 
@@ -93,9 +152,10 @@ app.post("/lists", (req, res) => {
     })
     .catch(e => {
       console.error(e);
-      res.status(500).end();
+      res.status(500).send({
+        error: e
+      });
     })
-
 })
 
 app.post("/cards", (req, res) => {
@@ -119,11 +179,121 @@ app.post("/cards", (req, res) => {
     })
     .catch(e => {
       console.error(e)
-      res.status(500).end();
+      res.status(500).send({
+        error: e
+      });
     })
 })
 
-app.post("/cards/move/:cardId/lists/:listId", (req, res) => {
+app.post("/checklists", (req, res) => {
+  let data = req.body;
+  console.log(data);
+  if (!data.card || !data.todo) return res.status(400).end();
+
+  data.card = createObjectId(data.card);
+
+  const db = getDB();
+  console.log(data);
+  db.collection("cards")
+    .findOne({
+      _id: createObjectId(data.card)
+    })
+    .then(result => {
+      if (!result) return res.status(404).end();
+      return db.collection("checklists").insertOne(data)
+    })
+    .then(result => {
+      data._id = result.insertedId;
+      res.status(201).json(data);
+    })
+    .catch(e => {
+      console.error(e);
+      res.status(500).send({
+        error: e
+      });
+    })
+})
+
+app.patch("/lists/:listId", (req, res) => {
+  let id = req.params.listId;
+  let data = req.body;
+
+  if (!id || !data.name) return res.status(400).end();
+
+  const db = getDB();
+  db.collection("lists")
+    .updateOne({
+      _id: createObjectId(id)
+    }, {
+      $set: data
+    }, )
+    .then(result => {
+      if (!result) return res.status(404).end();
+
+      res.status(201).json(result);
+    })
+    .catch(e => {
+      console.error(e)
+      res.status(500).send({
+        error: e
+      });
+    })
+
+})
+
+app.patch("/cards/:cardsId", (req, res) => {
+  let id = req.params.cardsId;
+  let data = req.body;
+  let editableKeys = ["list", "name", "description"];
+  if (!fn.validateData(data, editableKeys)) return res.status(400).end(); //Editable in card.
+
+  const db = getDB();
+  db.collection("cards")
+    .updateOne({
+      _id: createObjectId(id)
+    }, {
+      $set: data
+    }, )
+    .then(result => {
+      if (!result) return res.status(404).end();
+      res.status(201).json(data);
+    })
+    .catch(e => {
+      console.error(e);
+      res.status(500).send({
+        error: e
+      });
+    })
+})
+
+app.patch("/checklists/:todoId", (req, res) => {
+  let id = req.params.todoId;
+  let data = req.body;
+
+  let editableKeys = ["done", "card", "todo"];
+  if (!fn.validateData(data, editableKeys)) return res.status(400).end();
+
+  const db = getDB();
+  db.collection("checklists")
+    .updateOne({
+      _id: createObjectId(id)
+    }, {
+      $set: data
+    }, )
+    .then(result => {
+      if (!result) return res.status(404).end();
+
+      res.status(201).json(result)
+    })
+    .catch(e => {
+      console.error(e);
+      res.status(500).send({
+        error: e
+      });
+    })
+})
+
+app.patch("/cards/move/:cardId/lists/:listId", (req, res) => {
   let cardId = req.params.cardId;
   let listId = req.params.listId;
   if (!cardId || !listId) return res.status(400).end();
@@ -151,104 +321,10 @@ app.post("/cards/move/:cardId/lists/:listId", (req, res) => {
     })
     .catch(e => {
       console.error(e);
-      res.status(500).end();
+      res.status(500).send({
+        error: e
+      });
     })
-})
-
-app.post("/checklists", (req, res) => {
-  let data = req.body;
-  console.log(data);
-  if (!data.card || !data.todo) return res.status(400).end();
-
-  data.card = createObjectId(data.card);
-
-  const db = getDB();
-  console.log(data);
-  db.collection("cards")
-    .findOne({
-      _id: createObjectId(data.card)
-    })
-    .then(result => {
-      if (!result) return res.status(404).end();
-      return db.collection("checklists").insertOne(data)
-    })
-    .then(result => {
-      data._id = result.insertedId;
-      res.status(201).json(data);
-    })
-    .catch(e => {
-      console.error(e);
-      res.status(500).end();
-    })
-})
-
-app.patch("/lists/:listId", (req, res) => {
-  let id = req.params.listId;
-  let data = req.body;
-
-  if (!id || !data.name) return res.status(400).end();
-
-  const db = getDB();
-  db.collection("lists")
-    .updateOne({
-      _id: createObjectId(id)
-    }, {
-      $set: data
-    }, )
-    .then(result => {
-      res.status(201).json(result) //checka result
-    })
-    .catch(e => {
-      console.error(e)
-      res.status(500).end();
-    })
-
-})
-
-app.patch("/cards/:cardsId", (req, res) => {
-  let id = req.params.cardsId;
-  let data = req.body;
-  let editableKeys = ["list", "name", "description"];
-  if (!fn.validateData(data, editableKeys)) return res.status(400).end(); //Editable in card.
-
-  const db = getDB();
-  db.collection("cards")
-    .updateOne({
-      _id: createObjectId(id)
-    }, {
-      $set: data
-    }, )
-    .then(result => {
-      res.status(201).json(data);
-    })
-    .catch(e => {
-      console.error(e);
-      res.status(500).end();
-    })
-})
-
-app.patch("/checklists/:todoId", (req, res) => {
-  let id = req.params.todoId;
-  let data = req.body;
-
-  let editableKeys = ["done", "card", "todo"];
-  if (!fn.validateData(data, editableKeys)) return res.status(400).end(); //Editable in card.
-
-  const db = getDB();
-  db.collection("checklists")
-    .updateOne({
-      _id: createObjectId(id)
-    }, {
-      $set: data
-    }, )
-    .then(result => {
-      res.status(201).json(result)
-    })
-    .catch(e => {
-      console.error(e);
-      res.status(500).end();
-    })
-
 })
 
 app.delete("/lists/:listId", (req, res) => {
@@ -286,7 +362,9 @@ app.delete("/lists/:listId", (req, res) => {
     })
     .catch(e => {
       console.error(e);
-      res.status(500).end();
+      res.status(500).send({
+        error: e
+      });
     })
 })
 
@@ -306,8 +384,10 @@ app.delete("/cards/:cardsId", (req, res) => {
       })
     })
     .catch(e => {
-      res.status(500).end()
       console.error(e);
+      res.status(500).send({
+        error: e
+      });
     })
 })
 
@@ -324,8 +404,10 @@ app.delete("/checklists/:todoId", (req, res) => {
       res.status(204).end();
     })
     .catch(e => {
-      res.status(500).end()
       console.error(e);
+      res.status(500).send({
+        error: e
+      });
     })
 })
 

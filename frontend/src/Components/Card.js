@@ -31,7 +31,6 @@ export default function Card({ change, card, lists }) {
     axios.get(`/checklists/${card._id}`)
       .then(response => {
         let data = response.data.data;
-        console.log(data);
         setTodos(data);
       })
       .catch(e => {

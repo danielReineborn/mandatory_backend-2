@@ -57,7 +57,6 @@ export default function Board() {
     axios.get("/lists")
       .then(response => {
         let data = response.data.data
-        console.log(data);
         setLists(data)
         setListChange(false)
       })

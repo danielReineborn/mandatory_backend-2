@@ -217,7 +217,7 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
   function moveCard(e) {
     let moveToList = e.target.value;
     //axios.post
-    axios.post(`/cards/move/${card._id}/lists/${moveToList}`)
+    axios.patch(`/cards/move/${card._id}/lists/${moveToList}`)
       .then(result => {
         close(false);
         change(true);
@@ -256,9 +256,11 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
   function deleteCard() {
     axios.delete(`/cards/${card._id}`)
       .then(result => {
-        console.log(result);
-        close(false);
-        change(true);
+        if (result.status === 204) {
+          close(false);
+          change(true);
+
+        }
       })
       .catch(e => {
         console.error(e);
@@ -275,10 +277,10 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
                 <div className="flex-cont">
                   {!editName ? <h4>{card.name}</h4> : <form onSubmit={nameSubmit} action=""><input type="text" onChange={onNameChange} value={name} /> </form>}
                   <button onClick={nameChange}>Edit</button>
+                  {editName ? null : <button onClick={deleteCard} className="del-btn">Delete card</button>}
 
                 </div>
                 <p>Created: {moment(cardCopy.created).format('MMMM Do YYYY, h:mm')}</p>
-                <button onClick={deleteCard} className="del-btn">Delete card</button>
               </div>
               <div className="name-cont">
                 <div>

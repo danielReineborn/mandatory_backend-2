@@ -94,9 +94,11 @@ export default function MenuBtn({ openRename, type, id, isClicked, updateClick, 
   function delPost(type, id) {
     axios.delete(`/${type}s/${id}`)
       .then(response => {
-        console.log(response);
-        let newLists = lists.filter(x => x._id !== id)
-        setLists(newLists);
+        if (response.status === 204) {
+          let newLists = lists.filter(x => x._id !== id)
+          setLists(newLists);
+
+        }
       })
       .catch(e => {
         console.error(e);

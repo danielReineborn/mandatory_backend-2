@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import axios from "axios";
 
@@ -46,10 +46,12 @@ export default function AddList({ lists, setLists }) {
     }
     axios.post("/lists", list)
       .then(response => {
-        console.log(response);
-        let newList = response.data
-        let newLists = [...lists, newList];
-        setLists(newLists);
+        if (response.status === 201) {
+          let newList = response.data
+          let newLists = [...lists, newList];
+          setLists(newLists);
+
+        }
       })
       .catch(e => {
         console.error(e);
@@ -60,7 +62,16 @@ export default function AddList({ lists, setLists }) {
   return (
     <Wrapper>
       <form onSubmit={onSubmit} className="" action="">
-        <input autoComplete="off" onChange={onChange} value={value} className="addlist-input" placeholder="Add list.." type="text" name="addlist" id="addlist" />
+        <input
+          autoComplete="off"
+          onChange={onChange}
+          value={value}
+          className="addlist-input"
+          placeholder="Add list.."
+          type="text"
+          name="addlist"
+          id="addlist"
+        />
       </form>
     </Wrapper>
   )

@@ -39,16 +39,17 @@ export default function AddCard({ listId, setCards, cards }) {
     let card = {
       list: listId,
       name: value,
-      comment: "",
       description: "",
-
     }
     axios.post(`/cards`, card)
       .then(response => {
         console.log(response);
-        let newCard = response.data;
-        let newCards = [...cards, newCard];
-        setCards(newCards);
+        if (response.status === 201) {
+          let newCard = response.data;
+          let newCards = [...cards, newCard];
+          setCards(newCards);
+
+        }
       })
       .catch(e => {
         console.error(e);
