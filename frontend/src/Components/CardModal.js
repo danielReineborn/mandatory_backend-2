@@ -275,8 +275,8 @@ export default function CardModal({ change, listId, card, open, setTodos, close,
             <div className="cont name">
               <div className="name-cont">
                 <div className="flex-cont">
-                  {!editName ? <h4>{card.name}</h4> : <form onSubmit={nameSubmit} action=""><input type="text" onChange={onNameChange} value={name} /> </form>}
-                  <button onClick={nameChange}>Edit</button>
+                  {!editName ? <h4>{card.name}</h4> : <form onSubmit={nameSubmit} action=""><input autoFocus={true} type="text" onChange={onNameChange} value={name} /> </form>}
+                  {!editName ? <button onClick={nameChange}>Edit</button> : <button onClick={nameSubmit}>Edit</button>}
                   {editName ? null : <button onClick={deleteCard} className="del-btn">Delete card</button>}
 
                 </div>

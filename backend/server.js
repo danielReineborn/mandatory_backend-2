@@ -25,13 +25,16 @@ app.use((req, res, next) => {
   next();
 })
 
+//Routes
 app.get("/lists", (req, res) => {
   const db = getDB();
   db.collection("lists")
     .find({})
     .toArray()
     .then(result => {
-      if (!result) return res.status(404).end();
+      if (!result) return res.status(404).send({
+        error: "No result, check endpoint."
+      });
       res.status(200).json({
         data: result
       })
@@ -47,7 +50,9 @@ app.get("/lists", (req, res) => {
 //Get specific list.
 app.get("/lists/:listId", (req, res) => {
   let id = req.params.listId;
-  if (!id) return res.status(400).end();
+  if (!id) return res.status(400).send({
+    error: "Id is not valid."
+  });
   const db = getDB();
 
   db.collection("lists")
@@ -56,7 +61,9 @@ app.get("/lists/:listId", (req, res) => {
     })
     .then(result => {
       console.log(result);
-      if (!result) return res.status(404).end();
+      if (!result) return res.status(404).send({
+        error: "No result, check endpoint."
+      });
       res.status(200).json({
         data: result
       })
@@ -70,9 +77,11 @@ app.get("/lists/:listId", (req, res) => {
 })
 
 //ListId is required to get connected cards.
-app.get("/cards/:listId", (req, res) => {
+app.get("/cards/lists/:listId", (req, res) => {
   let id = req.params.listId;
-
+  if (!id) return res.status(400).send({
+    error: "Id is not valid."
+  });
   const db = getDB();
   db.collection("cards")
     .find({
@@ -80,7 +89,9 @@ app.get("/cards/:listId", (req, res) => {
     })
     .toArray()
     .then(result => {
-      if (!result) res.status(400).end();
+      if (!result) res.status(404).send({
+        error: "No result, check endpoint."
+      });
       res.status(200).json({
         data: result
       })
@@ -93,10 +104,12 @@ app.get("/cards/:listId", (req, res) => {
     })
 })
 //Get specific card
-app.get("/cards/one/:cardId", (req, res) => {
+app.get("/cards/:cardId", (req, res) => {
   console.log(req.params)
   let id = req.params.cardId;
-  if (!id) return res.status(400).end();
+  if (!id) return res.status(400).send({
+    error: "Id is not valid."
+  });
   const db = getDB();
   db.collection("cards")
     .find({
@@ -104,6 +117,9 @@ app.get("/cards/one/:cardId", (req, res) => {
     })
     .toArray()
     .then(result => {
+      if (!result) res.status(404).send({
+        error: "No result, check endpoint."
+      })
       res.json({
         data: result,
       })
@@ -119,6 +135,9 @@ app.get("/cards/one/:cardId", (req, res) => {
 app.get("/checklists/:cardId", (req, res) => {
   let id = req.params.cardId;
   id = createObjectId(id);
+  if (!id) return res.status(400).send({
+    error: "Id is not valid."
+  });
 
   const db = getDB();
   db.collection("checklists")
@@ -127,7 +146,9 @@ app.get("/checklists/:cardId", (req, res) => {
     })
     .toArray()
     .then(result => {
-      if (!result) res.status(400).end();
+      if (!result) res.status(404).send({
+        error: "No result, check endpoint."
+      })
       res.status(200).json({
         data: result
       })
@@ -142,7 +163,9 @@ app.get("/checklists/:cardId", (req, res) => {
 
 app.post("/lists", (req, res) => {
   let data = req.body;
-  if (!data.name) return res.status(400).end();
+  if (!data.name) return res.status(400).send({
+    error: "Name key is required."
+  });
   const db = getDB();
   db.collection("lists")
     .insertOne(data)
@@ -160,7 +183,9 @@ app.post("/lists", (req, res) => {
 
 app.post("/cards", (req, res) => {
   let data = req.body;
-  if (!data.list) return res.status(400).end();
+  if (!data.list) return res.status(400).send({
+    error: "ListId that card belongs to is required"
+  });
   data.list = createObjectId(data.list);
   const db = getDB();
   db.collection("lists")
@@ -168,13 +193,14 @@ app.post("/cards", (req, res) => {
       _id: createObjectId(data.list)
     })
     .then(result => {
-      if (!result) return res.status(404).end();
-      //this runs if validation is ok.
+      if (!result) return res.status(404).send({
+        error: "No result, check endpoint."
+      });
       data.created = Date.now();
       return db.collection("cards").insertOne(data)
     })
     .then(result => {
-      data._id = result.insertedId; //string
+      data._id = result.insertedId;
       res.status(201).json(data);
     })
     .catch(e => {
@@ -187,8 +213,9 @@ app.post("/cards", (req, res) => {
 
 app.post("/checklists", (req, res) => {
   let data = req.body;
-  console.log(data);
-  if (!data.card || !data.todo) return res.status(400).end();
+  if (!data.card || !data.todo) return res.status(400).send({
+    error: "Card and todo keys are required. Card in which todo belongs."
+  });
 
   data.card = createObjectId(data.card);
 
@@ -199,7 +226,9 @@ app.post("/checklists", (req, res) => {
       _id: createObjectId(data.card)
     })
     .then(result => {
-      if (!result) return res.status(404).end();
+      if (!result) return res.status(404).send({
+        error: "No result, check endpoint."
+      });
       return db.collection("checklists").insertOne(data)
     })
     .then(result => {
@@ -218,7 +247,9 @@ app.patch("/lists/:listId", (req, res) => {
   let id = req.params.listId;
   let data = req.body;
 
-  if (!id || !data.name) return res.status(400).end();
+  if (!id || !data.name) return res.status(400).send({
+    error: "Either provided ID is bad or no name key provided in request."
+  });
 
   const db = getDB();
   db.collection("lists")
@@ -228,7 +259,9 @@ app.patch("/lists/:listId", (req, res) => {
       $set: data
     }, )
     .then(result => {
-      if (!result) return res.status(404).end();
+      if (!result) return res.status(404).send({
+        error: "No result, check endpoint."
+      });
 
       res.status(201).json(result);
     })
@@ -245,7 +278,9 @@ app.patch("/cards/:cardsId", (req, res) => {
   let id = req.params.cardsId;
   let data = req.body;
   let editableKeys = ["list", "name", "description"];
-  if (!fn.validateData(data, editableKeys)) return res.status(400).end(); //Editable in card.
+  if (!fn.validateData(data, editableKeys)) return res.status(400).send({
+    error: "Key is not editable."
+  });
 
   const db = getDB();
   db.collection("cards")
@@ -255,7 +290,9 @@ app.patch("/cards/:cardsId", (req, res) => {
       $set: data
     }, )
     .then(result => {
-      if (!result) return res.status(404).end();
+      if (!result) return res.status(404).send({
+        error: "No result, check endpoint."
+      });
       res.status(201).json(data);
     })
     .catch(e => {
@@ -271,7 +308,9 @@ app.patch("/checklists/:todoId", (req, res) => {
   let data = req.body;
 
   let editableKeys = ["done", "card", "todo"];
-  if (!fn.validateData(data, editableKeys)) return res.status(400).end();
+  if (!fn.validateData(data, editableKeys)) return res.status(400).send({
+    error: "Key is not editable."
+  });
 
   const db = getDB();
   db.collection("checklists")
@@ -281,7 +320,9 @@ app.patch("/checklists/:todoId", (req, res) => {
       $set: data
     }, )
     .then(result => {
-      if (!result) return res.status(404).end();
+      if (!result) return res.status(404).send({
+        error: "No result, check endpoint."
+      });
 
       res.status(201).json(result)
     })
@@ -296,7 +337,9 @@ app.patch("/checklists/:todoId", (req, res) => {
 app.patch("/cards/move/:cardId/lists/:listId", (req, res) => {
   let cardId = req.params.cardId;
   let listId = req.params.listId;
-  if (!cardId || !listId) return res.status(400).end();
+  if (!cardId || !listId) return res.status(400).send({
+    error: "CardId and/or ListId is missing or faulty."
+  });
 
   const db = getDB();
   db.collection("lists")
@@ -304,7 +347,9 @@ app.patch("/cards/move/:cardId/lists/:listId", (req, res) => {
       _id: createObjectId(listId)
     })
     .then(result => {
-      if (!result) return res.status(404).end();
+      if (!result) return res.status(404).send({
+        error: "No result, check endpoint."
+      });
 
       return db.collection("cards")
         .updateOne({
@@ -316,7 +361,9 @@ app.patch("/cards/move/:cardId/lists/:listId", (req, res) => {
         })
     })
     .then(result => {
-      if (!result) res.status(404).end();
+      if (!result) res.status(404).send({
+        error: "No result, check endpoint."
+      });
       res.status(201).json(result);
     })
     .catch(e => {
@@ -330,7 +377,9 @@ app.patch("/cards/move/:cardId/lists/:listId", (req, res) => {
 app.delete("/lists/:listId", (req, res) => {
   let id = req.params.listId;
 
-  if (!id) return res.status(400).end();
+  if (!id) return res.status(400).send({
+    error: "Provide valid listId"
+  });
   let cardIds = [];
   const db = getDB();
   db.collection("lists")
@@ -371,7 +420,9 @@ app.delete("/lists/:listId", (req, res) => {
 app.delete("/cards/:cardsId", (req, res) => {
   let id = req.params.cardsId;
 
-  if (!id) return res.status(400).end();
+  if (!id) return res.status(400).send({
+    error: "Provide valid CardId."
+  });
   const db = getDB();
   db.collection("cards")
     .deleteOne({
@@ -394,7 +445,9 @@ app.delete("/cards/:cardsId", (req, res) => {
 app.delete("/checklists/:todoId", (req, res) => {
   let id = req.params.todoId;
 
-  if (!id) return res.status(400).end();
+  if (!id) return res.status(400).send({
+    error: "Provide valid todoId."
+  });
   const db = getDB();
   db.collection("checklists")
     .deleteOne({

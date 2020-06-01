@@ -40,7 +40,7 @@ export default function List({ listChange, change, list, setLists, lists }) {
   const [openRename, setOpenRename] = useState(false);
 
   useEffect(() => {
-    axios.get(`/cards/${list._id}`)
+    axios.get(`/cards/lists/${list._id}`)
       .then(response => {
         let data = response.data.data
         setCards(data)
