@@ -2,7 +2,7 @@
   "dependencies": {
     "axios": "^0.19.2",
     "express": "^4.17.1",
-    "moment": "^2.25.3",
+    "moment": "^2.29.2",
     "mongodb": "^3.5.7",
     "styled-components": "^5.1.0",
     "uuid": "^8.0.0"
